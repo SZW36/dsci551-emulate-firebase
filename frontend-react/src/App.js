@@ -22,8 +22,10 @@ function App() {
 	return (
 		<div className="App">
 			<button
-				onClick={() => {
-					axios.get("http://127.0.0.1:5000");
+				onClick={async () => {
+					axios.get("http://127.0.0.1:5000").then((response) => {
+						console.log(response);
+					});
 				}}
 			>
 				my botton
