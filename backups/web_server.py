@@ -82,63 +82,13 @@ def catch_all_get(myPath):
 
     resp = find(path_list)
 
-    args = request.args.to_dict()
     
-    if len(args) == 0:
-        # send response back
-        response = jsonify(resp)
-        response.headers.add('Access-Control-Allow-Origin', '*')
-
-        return response
-    
-
-    # process orderBy
-    for key in args:
-        if type(args[key]) is str:
-            args[key] = args[key].strip("\'\"")
-
-    orderBy = args.get("orderBy")
-
-    key_list = resp.keys()
-
-    print(key_list)
-
-    sorted_key_list = []
-    if orderBy == "$key":
-        sorted_key_list = sorted(key_list)
-    elif orderBy == "$value":
-        # check if single value
-        # if so, sort it by that value
-        # if not, check if cache has a key, if not, suggest user create a key
-        pass
-    else:
-        sorted_key_list = sorted(key_list, key=lambda list_item: (resp[list_item][args["orderBy"]]))
-
-    print(sorted_key_list)
-
-    # orderBy = request.args.get("orderBy").strip("\'\"")
-    # limitToFirst = request.args.get("limitToFirst").strip("\'\"")
-    # limitToLast = request.args.get("limitToLast").strip("\'\"")
-    # equalTo = request.args.get("equalTo").strip("\'\"")
-    # startAt = request.args.get("startAt").strip("\'\"")
-    # endAt = request.args.get("endAt").strip("\'\"")
-
-    # print(orderBy)
-    # print(limitToFirst)
-    # print(limitToLast)
-    # print(equalTo)
-    # print(startAt)
-    # print(endAt)
-    # print(type(orderBy))
-    # print(orderBy.strip("\"\'") == 'name')
-
 
     # send response back
     response = jsonify(resp)
     response.headers.add('Access-Control-Allow-Origin', '*')
 
     return response
-
 
 ### PUT requests will delete old data on current level and insert new data
 @app.route('/', defaults={'myPath': ''}, methods=['PUT'])

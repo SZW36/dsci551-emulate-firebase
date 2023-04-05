@@ -39,22 +39,24 @@ def process_path(myPath):
 def find(path_list):
     """
     input: a list of string that represents path
-    output: The outcome that we want to find. 
-            If it does not exist, return -1 for no root, None for does not exist
+    output: The outcome that we want to find. If it does not exist, None will be returned
     """
 
-    resp = main.find_one({"_id": "root"}, {"_id": 0})
-    if not resp:
-        return -1
-    resp = resp.get("root")
+    first_item = path_list[0]
 
-    for i in range(0, len(path_list)):
-        target = path_list[i]
-        if target == "":
-            continue
-        if not resp:
-            break
-        resp = resp.get(target)
+    resp = []
+
+    # if first item is empty string, we want to return the entire collection
+    if first_item == "":
+        result = main.find({}, {"_id": 0})
+        for item in result:
+            resp.append(item)
+    else:
+        resp = main.find_one({"_id": first_item}, {"_id": 0})
+        for i in range(0, len(path_list)):
+            if not resp:
+                break
+            resp = resp.get(path_list[i])
     
     return resp
 
@@ -82,86 +84,45 @@ def catch_all_get(myPath):
 
     resp = find(path_list)
 
-    args = request.args.to_dict()
-    
-    if len(args) == 0:
-        # send response back
-        response = jsonify(resp)
-        response.headers.add('Access-Control-Allow-Origin', '*')
-
-        return response
-    
-
-    # process orderBy
-    for key in args:
-        if type(args[key]) is str:
-            args[key] = args[key].strip("\'\"")
-
-    orderBy = args.get("orderBy")
-
-    key_list = resp.keys()
-
-    print(key_list)
-
-    sorted_key_list = []
-    if orderBy == "$key":
-        sorted_key_list = sorted(key_list)
-    elif orderBy == "$value":
-        # check if single value
-        # if so, sort it by that value
-        # if not, check if cache has a key, if not, suggest user create a key
-        pass
-    else:
-        sorted_key_list = sorted(key_list, key=lambda list_item: (resp[list_item][args["orderBy"]]))
-
-    print(sorted_key_list)
-
-    # orderBy = request.args.get("orderBy").strip("\'\"")
-    # limitToFirst = request.args.get("limitToFirst").strip("\'\"")
-    # limitToLast = request.args.get("limitToLast").strip("\'\"")
-    # equalTo = request.args.get("equalTo").strip("\'\"")
-    # startAt = request.args.get("startAt").strip("\'\"")
-    # endAt = request.args.get("endAt").strip("\'\"")
-
-    # print(orderBy)
-    # print(limitToFirst)
-    # print(limitToLast)
-    # print(equalTo)
-    # print(startAt)
-    # print(endAt)
-    # print(type(orderBy))
-    # print(orderBy.strip("\"\'") == 'name')
-
-
     # send response back
     response = jsonify(resp)
     response.headers.add('Access-Control-Allow-Origin', '*')
 
     return response
 
-
 ### PUT requests will delete old data on current level and insert new data
 @app.route('/', defaults={'myPath': ''}, methods=['PUT'])
 @app.route('/<path:myPath>', methods=['PUT'])
 def catch_all_put(myPath):
+    
+    # 1. if it is root, just delete everything (we want to delete the upper level document first)
+    #    if it is any existing document, just use updateOne with upsert
+    # 2. insert the new document
+    #    if multiple keys, insert every entry as a document
 
     path_list = process_path(myPath)
+    # print("path_list = " + str(path_list))
     data = json.loads(request.get_data().decode('utf-8'))
     data_type = type(data)
+    # print("data is " + str(data))
+    # print("type of data is " + str(type(data)))
 
     first_item = path_list[0]  
 
     if first_item == "":
         # delete everything in root
         main.delete_many({})
-        # if data_type is dict:
-        data = {"root" : data}
-        data["_id"] = "root"
-        main.insert_one(data)
+        if data_type is dict:
+            for key in data:
+                insert(key, data[key])
+        ### we may not need to account for list, can delete this one
+        # if data_type is list:
+        #     for list_item in data:
+        #         for key in list_item:
+        #             insert(key, list_item[key])
     else:
         query_path = ".".join(path_list)
-        query_path = "root." + query_path
-        main.update_one({"_id": "root"}, {"$set": {query_path: data}}, upsert = True)
+        main.update_one({"_id": first_item}, {"$set": {query_path: data}}, upsert = True)
 
     # # send message to front end
     # sio.send(myPath, json=True)
@@ -173,36 +134,20 @@ def catch_all_put(myPath):
 @app.route('/', defaults={'myPath': ''}, methods=['PATCH'])
 @app.route('/<path:myPath>', methods=['PATCH'])
 def catch_all_patch(myPath):
+    print("myPath = " + myPath)
+    resp = {"url": request.url_root,
+        "path": request.path,
+        # "full path": request.full_path,
+        "data": request.get_data().decode('utf-8')}
 
-    path_list = process_path(myPath)
-    new_data = json.loads(request.get_data().decode('utf-8'))
+    print(resp)
+    response = jsonify(resp)
+    response.headers.add('Access-Control-Allow-Origin', '*')
 
-    print("new data = " + str(new_data))
+    # send message to front end
+    sio.send(resp, json=True)
 
-    data = find(path_list)
-
-    print("data is " + str(data))
-
-    if data == -1: # no root
-        data = {"root" : new_data}
-        data["_id"] = "root"
-        main.insert_one(data)
-        return "success"
-    
-    if not data: # data does not exist
-        data = {}
-
-    for key in new_data:
-        data[key] = new_data[key]
-
-    query_path = ".".join(path_list)
-    if query_path == "":
-        query_path = "root"
-    else:
-        query_path = "root." + query_path
-    main.update_one({"_id": "root"}, {"$set": {query_path: data}}, upsert = True)
-
-    return "success"
+    return response
 
 ### POST will: if key exists, update. else insert
 @app.route('/', defaults={'myPath': ''}, methods=['POST'])
@@ -227,11 +172,11 @@ def catch_all_post(myPath):
 @app.route('/', defaults={'myPath': ''}, methods=['DELETE'])
 @app.route('/<path:myPath>', methods=['DELETE'])
 def catch_all_delete(myPath):
-
-    path_list = process_path(myPath)
-
-    query_path = ".".join(path_list)
-    main.update_one({"_id": "root"}, {"$unset": {query_path: data}}, upsert = True)
+    print("myPath = " + myPath)
+    resp = {"url": request.url_root,
+        "path": request.path,
+        # "full path": request.full_path,
+        "data": request.get_data().decode('utf-8')}
 
     print(resp)
     response = jsonify(resp)
