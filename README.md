@@ -26,6 +26,21 @@
     mongosh
 ```
 
+## To run and query backend:
+
+1. Run backend:
+
+```
+    python3 web_server.py
+```
+
+2. Send query to "localhost:5000". For example:
+
+```
+    curl -X GET 'localhost:5000/.json'
+    curl -X PUT 'localhost:5000/101.json' -d '{"name": "Peter"}'
+```
+
 ### Documentations & Useful Websites
 
 1. socketio  
