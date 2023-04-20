@@ -20,6 +20,12 @@
     brew services stop mongodb-community@6.0
 ```
 
+## Query mongodb on macOS in terminal
+
+```
+    mongosh
+```
+
 ### Documentations & Useful Websites
 
 1. socketio  
