@@ -17,8 +17,9 @@ sio = SocketIO(app, cors_allowed_origins="*")
 # @CORS(app)
 def hello_world():
     sid = request.json["sid"]
+    print(sid)
     data = {"abc": 2, "def": 56}
-    sio.send(data, "json", room = sid)
+    sio.send(data, "json")
     # sio.emit('message', "jkl")
     response = jsonify("abc")
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -26,9 +27,7 @@ def hello_world():
 
 @sio.on("connect")
 def handle_connect():
-    print(request.sid)
-    print("client connected!")
-    # sio.send(request.sid, "xyz")
+    print("client connected! sid = " + str(request.sid))
     sio.send({"your_sid": request.sid}, "json", room=request.sid)
 
 sio.run(app, debug=True)

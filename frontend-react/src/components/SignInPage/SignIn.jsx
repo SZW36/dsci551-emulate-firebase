@@ -9,7 +9,7 @@ function SignIn() {
 
 	const { currentUser, setCurrentUser } = useContext(UserContext);
 
-	console.log(currentUser);
+	// console.log(currentUser);
 
 	const handleInputChange = (event) => {
 		setInputText(event.target.value);
@@ -19,10 +19,20 @@ function SignIn() {
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
-		console.log(inputText); // replace with your desired logic for handling the user input
+		// console.log(inputText); // replace with your desired logic for handling the user input
+		// console.log("SignIn 1");
+		// console.log(currentUser);
+		// currentUser["name"] = inputText;
+		// console.log("SignIn 2");
+		// console.log(currentUser);
+		// setCurrentUser(currentUser);
+		// console.log("SignIn 3");
+		// console.log(currentUser);
 
-		currentUser["name"] = inputText;
-		setCurrentUser(currentUser);
+		setCurrentUser((prevUser) => ({
+			...prevUser,
+			name: inputText,
+		}));
 
 		navigate("/chat_room");
 

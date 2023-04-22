@@ -468,6 +468,10 @@ def catch_all_post(myPath):
 
     data[cur_uuid] = new_data
 
+    # send message to front end
+    # data_to_send = {cur_uuid: new_data}
+    sio.send(new_data, "json")
+
     query_path = ".".join(path_list)
     if query_path == "":
         query_path = "root"
@@ -475,10 +479,6 @@ def catch_all_post(myPath):
         query_path = "root." + query_path
     main.update_one({"_id": "root"}, {"$set": {query_path: data}}, upsert = True)
 
-    # # send message to front end
-    # sio.send(resp, json=True)
-
-    # return response
 
     return "success"
 
@@ -525,6 +525,12 @@ def catch_all_delete(myPath):
 # @sio.on('my_event')
 # def handler():
 #     print('received my event')
+
+@sio.on("connect")
+def handle_connect():
+    print("\nclient connected!")
+    print("sid = " + str(request.sid) + "\n")
+    sio.send({"your_sid": request.sid}, "json", room=request.sid)
 
 sio.run(app, debug=True)
 

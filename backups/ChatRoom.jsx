@@ -1,11 +1,10 @@
 import { useContext, useState, useEffect, useRef } from "react";
 import { UserContext } from "../../context/user.context";
 import "./ChatRoom.css";
-import axios from "axios";
 
 const ChatRoom = () => {
 	const { currentUser } = useContext(UserContext);
-	// const [messages, setMessages] = useState([]);
+	const [messages, setMessages] = useState([]);
 	const [newMessage, setNewMessage] = useState("");
 	const boxRef = useRef(null);
 
@@ -19,16 +18,12 @@ const ChatRoom = () => {
 		}
 
 		const message = {
-			sid: currentUser["sid"],
 			name: currentUser["name"],
 			message: newMessage.trim(),
-			// isCurrentUser: true,
+			isCurrentUser: true,
 		};
 
-		axios.post("http://127.0.0.1:5000", message).then((response) => {
-			console.log(response);
-		});
-		// setMessages((prevMessages) => [...prevMessages, message]);
+		setMessages((prevMessages) => [...prevMessages, message]);
 		setNewMessage("");
 	};
 
@@ -36,21 +31,21 @@ const ChatRoom = () => {
 		if (boxRef.current) {
 			boxRef.current.scrollTop = boxRef.current.scrollHeight;
 		}
-	}, [currentUser["messages"]]);
+	}, [messages]);
 
 	return (
 		<div className="chat-room">
 			<div className="chat-room__box" ref={boxRef}>
-				{currentUser?.messages?.map((message, index) => (
+				{messages.map((message, index) => (
 					<div
 						key={index}
 						className={
-							message["sid"] == currentUser["sid"]
+							message.isCurrentUser
 								? "chat-room__message chat-room__message--current-user"
 								: "chat-room__message chat-room__message--other-user"
 						}
 					>
-						{message["sid"] == currentUser["sid"]
+						{message.isCurrentUser
 							? `${message.message}: ${message.name}`
 							: `${message.name}: ${message.message}`}
 					</div>

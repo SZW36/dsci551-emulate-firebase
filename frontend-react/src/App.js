@@ -19,8 +19,24 @@ function App() {
 
 		socket.on("json", (msg) => {
 			if ("your_sid" in msg) {
-				setCurrentUser({ sid: msg["your_sid"] });
+				// setCurrentUser({ sid: msg["your_sid"] });
+				setCurrentUser((prevUser) => ({
+					...prevUser,
+					sid: msg["your_sid"],
+				}));
+			} else {
+				// console.log("useEffect else condition1");
+				// console.log(currentUser);
+				// currentUser.messages = [msg, ...currentUser.messages];
+				// console.log("useEffect else condition2");
+				// console.log(currentUser);
+				// setCurrentUser(currentUser);
+				setCurrentUser((prevUser) => ({
+					...prevUser,
+					messages: [msg, ...prevUser["messages"]],
+				}));
 			}
+			console.log("useEffect end");
 			console.log(msg);
 		});
 
@@ -30,19 +46,6 @@ function App() {
 	}, []);
 
 	return (
-		// <div className="App">
-		// 	<button
-		// 		onClick={async () => {
-		// 			console.log(sid);
-		// 			axios.put("http://127.0.0.1:5000", { sid }).then((response) => {
-		// 				console.log(response);
-		// 			});
-		// 		}}
-		// 	>
-		// 		my botton
-		// 	</button>
-		// 	<SignIn />
-		// </div>
 		<Routes>
 			<Route path="/" element={<SignIn />} />
 			<Route path="/chat_room" element={<ChatRoom />} />

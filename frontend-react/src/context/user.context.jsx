@@ -1,9 +1,17 @@
 import { createContext, useState } from "react";
 
-export const UserContext = createContext({});
+export const UserContext = createContext({
+	messages: [],
+	sid: null,
+	name: null,
+});
 
 export const UserProvider = ({ children }) => {
-	const [currentUser, setCurrentUser] = useState(null);
+	const [currentUser, setCurrentUser] = useState({
+		messages: [],
+		sid: null,
+		name: null,
+	});
 	const value = { currentUser, setCurrentUser };
 
 	return (
