@@ -33,7 +33,7 @@ function App() {
 				// setCurrentUser(currentUser);
 				setCurrentUser((prevUser) => ({
 					...prevUser,
-					messages: [msg, ...prevUser["messages"]],
+					messages: [...prevUser["messages"], msg],
 				}));
 			}
 			console.log("useEffect end");
