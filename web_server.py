@@ -4,10 +4,12 @@ from flask_socketio import send, emit
 import json
 from pymongo import MongoClient
 from uuid import uuid4
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 # sio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
+CORS(app)
 sio = SocketIO(app, cors_allowed_origins="*")
 
 # for mongodb
