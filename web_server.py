@@ -297,10 +297,14 @@ def catch_all_get(myPath):
         #     return process_resp(resp)
         
         key_list = []
-        for key in resp:
-            if type(resp[key]) == type(equalTo) or type(resp[key]) == type(startAt) or type(resp[key]) == type(endAt):
-                key_list.append(key)
-        
+        if startAt or endAt or equalTo:
+            for key in resp:
+                if type(resp[key]) == type(equalTo) or type(resp[key]) == type(startAt) or type(resp[key]) == type(endAt):
+                    key_list.append(key)
+        else:
+            key_list = list(resp.keys())
+        print(key_list)
+
         sorted_key_list = sorted(key_list, key=lambda list_item: (resp[list_item]))
         
         # use two pointers to locate where to start getting output
