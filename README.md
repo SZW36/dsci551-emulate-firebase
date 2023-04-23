@@ -38,7 +38,21 @@
 
 ```
     curl -X GET 'localhost:5000/.json'
-    curl -X PUT 'localhost:5000/101.json' -d '{"name": "Peter"}'
+    curl -X PUT 'localhost:5000/101.json' -d '{"name": "Daniel"}'
+```
+
+## To run the frontend:
+
+1. Make sure to install all packages
+
+```
+    npm install
+```
+
+2. run frontend
+
+```
+    npm start
 ```
 
 ### Documentations & Useful Websites

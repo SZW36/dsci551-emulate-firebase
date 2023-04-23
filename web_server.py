@@ -74,7 +74,6 @@ def find_for_deletion(path_list):
 
     """
     resp = main.find_one({"_id": "root"}, {"_id": 0})
-    print(resp)
     res = find_for_deletion_helper(path_list, 0, resp.get("root"))
     print(res)
     if res == False: # we haven't found it
@@ -82,7 +81,6 @@ def find_for_deletion(path_list):
     return res[0]
 
 def find_for_deletion_helper(path_list, idx, resp):
-    print(str(idx) + " " + str(resp))
     # if not found
     if resp == None:
         return False
@@ -263,8 +261,8 @@ def catch_all_get(myPath):
             return process_resp({equalTo: val} if val != None else None)
         else:
             # convert into string for comparison
-            startAt = str(startAt)
-            endAt = str(endAt)
+            startAt = str(startAt) if startAt else None
+            endAt = str(endAt) if endAt else None
 
             # sort it and then use two pointers
             sorted_key_list = sorted(key_list)
@@ -319,6 +317,12 @@ def catch_all_get(myPath):
         if endAt:
             while left <= right and resp.get(sorted_key_list[right]) > endAt:
                 right -= 1
+        if limitToFirst:
+            end = left + limitToFirst - 1
+            right = end if end <= right else right
+        if limitToLast:
+            start = right - limitToLast + 1
+            left = start if start >= left else left
         
         while left <= right:
             output.append(sorted_key_list[left])
@@ -336,18 +340,21 @@ def catch_all_get(myPath):
             if type(cur_item) is not dict:
                 continue
             for key2 in cur_item:
-                if  key2 == orderBy and \
-                    (type(resp[key][key2]) == type(equalTo) or \
-                     type(resp[key][key2]) == type(startAt) or \
-                     type(resp[key][key2]) == type(endAt)):
-                    
-                    key_list.append(key)
-
+                if  key2 == orderBy:
+                    if (equalTo or startAt or endAt):
+                        if (type(resp[key][key2]) == type(equalTo) or \
+                            type(resp[key][key2]) == type(startAt) or \
+                            type(resp[key][key2]) == type(endAt)):
+                            key_list.append(key)
+                    else:
+                        key_list.append(key)
+        
         sorted_key_list = sorted(key_list, key=lambda list_item: (resp[list_item][orderBy]))
 
         # use two pointers to locate where to start getting output
         left = 0
         right = len(sorted_key_list)-1
+        print("right = " + str(right))
         if equalTo:
             while left <= right and resp.get(sorted_key_list[left]).get(orderBy) != equalTo:
                 left += 1
@@ -359,6 +366,12 @@ def catch_all_get(myPath):
         if endAt:
             while left <= right and resp.get(sorted_key_list[right]).get(orderBy) > endAt:
                 right -= 1
+        if limitToFirst:
+            end = left + limitToFirst - 1
+            right = end if end <= right else right
+        if limitToLast:
+            start = right - limitToLast + 1
+            left = start if start >= left else left
         
         while left <= right:
             output.append(sorted_key_list[left])
@@ -493,6 +506,9 @@ def catch_all_delete(myPath):
 
     path_list = process_path(myPath)
 
+    if path_list[0] == "":
+        reinsert_root_elem()
+        return "successfully deleted everything"
 
     res = find_for_deletion(path_list)
 
